@@ -47,12 +47,12 @@ class CarDealer:
         return "Dealer name: " + self.full_name
 
 class DealerReview:
-    def __init__(self, dealership, name, purchase, review, id):
+    def __init__(self, dealership, name, purchase, sentiment, review, id):
         self.dealership = dealership
         self.name = name 
         self.purchase = purchase
         self.review = review
         # self.car_make = car_make
         # self.car_year = car_year
-        # self.sentiment = sentiment
+        self.sentiment = sentiment
         self.id = id
