@@ -2,8 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
-# from .models import related models
-# from .restapis import related methods
+from .models import CarModel
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
@@ -14,7 +13,6 @@ from .restapis import get_dealers_from_cf, get_request, get_dealer_reviews_from_
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
-user_logged = False
 
 # Create your views here.
 
@@ -42,7 +40,6 @@ def login_request(request):
         # Try to check if provide credential can be authenticated
         user = authenticate(username=username, password=password)
         if user is not None:
-            user_logged = True
             # If user is valid, call login method to login current user
             login(request, user)
             return redirect('djangoapp:index')
@@ -105,6 +102,7 @@ def get_dealerships(request):
 
 def get_dealer_details(request, dealer_id):
     context = {}
+    context['dealer_id'] = dealer_id
     print(dealer_id)
     if request.method == "GET":
         url = "https://us-south.functions.appdomain.cloud/api/v1/web/072aa07a-e470-4574-a987-b30c76a2469d/default/review"
@@ -113,19 +111,33 @@ def get_dealer_details(request, dealer_id):
         return render(request, 'djangoapp/dealer_details.html', context)
 
 def add_review(request, dealer_Id):
-    url = "https://us-south.functions.appdomain.cloud/api/v1/web/072aa07a-e470-4574-a987-b30c76a2469d/default/post-review"
-    review = {
-        "time": datetime.utcnow().isoformat(),
-        "dealership": dealer_Id,
-        "review": "Good dealer"
-    }
-    json_payload = {}
-    if user_logged:
+    context = {}
+    context['dealer_Id'] = dealer_Id
+    if request.method == "GET":
+        context['cars'] = CarModel.objects.all()
+        return render(request, 'djangoapp/add_review.html', context)
+
+    elif request.method == "POST":
+        review = request.POST["content"]
+        purchase = request.POST["purchasecheck"]
+        car_model = request.POST["car"]
+        purchasedate = request.POST["purchasedate"]
+
+        url = "https://us-south.functions.appdomain.cloud/api/v1/web/072aa07a-e470-4574-a987-b30c76a2469d/default/post-review"
+        review = {
+            "time": datetime.utcnow().isoformat(),
+            "dealership": dealer_Id,
+            "review": review,
+            "purchase": purchase,
+            "name": 'Nico',
+            "car_model": car_model,
+            "purchase_date": purchasedate,
+            "id": dealer_Id
+                 }
+        json_payload = {}
         json_payload['review'] = review
         post_request(url, json_payload, dealerId=dealer_Id)
-        return HttpResponse(review)
+        return redirect("djangoapp:dealer_details", dealer_id=dealer_Id)
 
-    else:
-        return HttpResponse('You have to be logged in to add a review.')
 
 

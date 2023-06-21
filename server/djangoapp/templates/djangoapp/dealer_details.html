@@ -23,7 +23,7 @@
                     <a class="btn btn-link" href="#">{{ user.first_name }}({{ user.username }})</a>
                     <a class="btn btn-link" href="{% url 'djangoapp:logout' %}">Logout</a>
                 </li>
-                <a class="btn btn-link" href="{% url 'djangoapp:review' dealer.id}">Add review</a>
+                <a class="btn btn-link" href="{% url 'djangoapp:add_review' dealer_id %}">Add review</a>
                 {% else %}
                 <li>
                     <form class="form-inline" action="{% url 'djangoapp:login' %}" method="post">
