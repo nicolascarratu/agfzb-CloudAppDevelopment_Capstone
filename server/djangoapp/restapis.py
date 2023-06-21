@@ -44,7 +44,7 @@ def get_dealers_from_cf(url, **kwargs):
         # For each dealer object
         for dealer in dealers:
             # Get its content in `doc` object
-            dealer_doc = dealer["doc"]
+            dealer_doc = dealer['doc']
             # Create a CarDealer object with values in `doc` object
             dealer_obj = CarDealer(address=dealer_doc["address"], city=dealer_doc["city"], full_name=dealer_doc["full_name"],
                                    id=dealer_doc["id"], lat=dealer_doc["lat"], long=dealer_doc["long"],
@@ -70,6 +70,9 @@ def get_dealer_reviews_from_cf(url, dealerId):
                 id=dealer_doc["id"], 
                 purchase=dealer_doc["purchase"], 
                 review=dealer_doc["review"],
+                car_make = dealer_doc["car_make"],
+                car_model = dealer_doc["car_model"],
+                car_year = dealer_doc["car_year"],
                 sentiment=''
                 
             )
@@ -91,10 +94,12 @@ def analyze_review_sentiments(text):
     natural_language_understanding.set_service_url(url)
     features = 'sentiment'
     return_analyzed_text = False
-
+    language= "en"
     response = natural_language_understanding.analyze(
         text=text,
+        language= language,
         features=Features(sentiment=SentimentOptions())).get_result()
+        
     
     sentiment=response['sentiment']['document']['label'] 
     return sentiment
