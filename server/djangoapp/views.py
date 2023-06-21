@@ -13,6 +13,7 @@ from .restapis import get_dealers_from_cf, get_request, get_dealer_reviews_from_
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+current_user = ''
 
 # Create your views here.
 
@@ -31,11 +32,13 @@ def get_contact(request):
 
 # Create a `login_request` view to handle sign in request
 def login_request(request):
+    global current_user
     context = {}
     # Handles POST request
     if request.method == "POST":
         # Get username and password from request.POST dictionary
         username = request.POST['username']
+        current_user = username
         password = request.POST['psw']
         # Try to check if provide credential can be authenticated
         user = authenticate(username=username, password=password)
@@ -111,6 +114,7 @@ def get_dealer_details(request, dealer_id):
         return render(request, 'djangoapp/dealer_details.html', context)
 
 def add_review(request, dealer_Id):
+    global current_user
     context = {}
     context['dealer_Id'] = dealer_Id
     if request.method == "GET":
@@ -119,9 +123,19 @@ def add_review(request, dealer_Id):
 
     elif request.method == "POST":
         review = request.POST["content"]
-        purchase = request.POST["purchasecheck"]
-        car_model = request.POST["car"]
-        purchasedate = request.POST["purchasedate"]
+        if 'purchasecheck' in request.POST:
+            purchase = True
+            purchasedate = request.POST["purchasedate"]
+        else: 
+            purchase = False
+            purchasedate = None
+
+        car = CarModel.objects.get(id=request.POST['car'])
+
+        print(request.POST['car'])
+        car_make = car.car_type
+        car_model = car.name
+        car_year = car.year.isoformat()
 
         url = "https://us-south.functions.appdomain.cloud/api/v1/web/072aa07a-e470-4574-a987-b30c76a2469d/default/post-review"
         review = {
@@ -129,15 +143,16 @@ def add_review(request, dealer_Id):
             "dealership": dealer_Id,
             "review": review,
             "purchase": purchase,
-            "name": 'Nico',
+            "name": current_user,
+            "car_make": car_make,
             "car_model": car_model,
             "purchase_date": purchasedate,
+            "car_year": car_year,
             "id": dealer_Id
                  }
         json_payload = {}
         json_payload['review'] = review
         post_request(url, json_payload, dealerId=dealer_Id)
         return redirect("djangoapp:dealer_details", dealer_id=dealer_Id)
-
 
 
